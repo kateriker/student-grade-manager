@@ -1,8 +1,166 @@
-
 from drafter import *
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Optional
+from typing import Any, Optional
+
+
+# -------------------------
+# SITE SETTINGS (GitHub Pages)
+# -------------------------
+
+set_site_information(
+    author="your_email@udel.edu",
+    description="""GradePilot helps students track assignments, plan
+    what to work on next, and figure out the grades they need.""",
+    sources=["List any help resources or sources you used"],
+    planning=["your_planning_document.pdf"],
+    links=["https://github.com/your-username/your-repo"]
+)
+hide_debug_information()
+set_website_title("GradePilot")
+set_website_framed(False)
+set_website_style("none")
+
+add_website_css("""
+body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+        sans-serif;
+    background: linear-gradient(160deg, #eef2ff 0%, #f8fafc 45%,
+        #ecfeff 100%);
+    background-attachment: fixed;
+    color: #1e293b;
+    line-height: 1.55;
+    margin: 0;
+    padding: 24px 16px 56px 16px;
+}
+form, [id^="drafter-form"] {
+    max-width: 880px;
+    margin: 0 auto;
+}
+h1 {
+    font-size: 2.3rem;
+    margin: 0 0 2px 0;
+    color: #4338ca;
+    letter-spacing: -0.02em;
+}
+h2 {
+    font-size: 1.2rem;
+    margin: 26px 0 10px 0;
+    color: #334155;
+}
+.subtitle { color: #64748b; margin-bottom: 18px; }
+.muted { color: #64748b; font-size: 0.92rem; }
+
+.card, .stat, table {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(30, 41, 59, 0.06);
+}
+.card { padding: 18px 20px; margin: 14px 0; }
+.stats { display: flex; flex-wrap: wrap; gap: 14px; margin: 16px 0; }
+.stat { flex: 1 1 180px; padding: 16px 18px; }
+.stat-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #64748b;
+}
+.stat-value { font-size: 2rem; font-weight: 700; color: #4338ca; }
+.stat-note { font-size: 0.88rem; color: #64748b; }
+.up-name { font-size: 1.4rem; font-weight: 700; margin: 4px 0; }
+
+button, input[type=submit], input[type=button] {
+    background: #4f46e5;
+    color: #ffffff;
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 18px;
+    margin: 4px 8px 4px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+}
+button:hover, input[type=submit]:hover, input[type=button]:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
+a { color: #4f46e5; font-weight: 600; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+input[type=text], input[type=number], select, textarea {
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 1rem;
+    margin: 4px 0 10px 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    background: #ffffff;
+}
+input:focus, select:focus, textarea:focus {
+    outline: 2px solid #a5b4fc;
+    border-color: #6366f1;
+}
+.label { display: block; font-weight: 600; margin-top: 8px; }
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    margin: 12px 0;
+}
+th {
+    background: #4f46e5;
+    color: #ffffff;
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+}
+td { padding: 10px 12px; border-bottom: 1px solid #eef2f7; }
+tr:nth-child(even) td { background: #f8fafc; }
+
+progress {
+    width: 100%;
+    height: 16px;
+    accent-color: #4f46e5;
+    margin: 8px 0;
+}
+
+.task { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rank {
+    background: #e0e7ff;
+    color: #4338ca;
+    font-weight: 700;
+    border-radius: 999px;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.task-name { font-weight: 700; flex: 1 1 200px; }
+.pill {
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 12px;
+}
+.pill-high { background: #fee2e2; color: #b91c1c; }
+.pill-medium { background: #fef3c7; color: #b45309; }
+.pill-low { background: #dcfce7; color: #15803d; }
+
+.msg {
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-weight: 600;
+}
+.msg-error { background: #fee2e2; color: #b91c1c; }
+.msg-info { background: #e0e7ff; color: #3730a3; }
+""")
 
 
 # -------------------------
@@ -81,22 +239,64 @@ def calculate_gpa(state: State) -> float:
     return total_points / total_weight
 
 
+def parse_date(text: str) -> Optional[date]:
+    """Turn 'YYYY-MM-DD' into a date, or None if it is invalid."""
+    parts = text.strip().split("-")
+
+    if len(parts) != 3:
+        return None
+
+    try:
+        return date(int(parts[0]), int(parts[1]), int(parts[2]))
+    except ValueError:
+        return None
+
+
+def days_left(
+    due_text: str, today: Optional[date] = None
+) -> Optional[int]:
+    """Return days until a due date, or None if the date is invalid."""
+    if today is None:
+        today = date.today()
+
+    due = parse_date(due_text)
+
+    if due is None:
+        return None
+
+    return (due - today).days
+
+
+def due_description(due_text: str) -> str:
+    """Describe a due date in friendly words."""
+    days = days_left(due_text)
+
+    if days is None:
+        return "No valid due date"
+    if days < 0:
+        late = -days
+        if late == 1:
+            return "Overdue by 1 day"
+        return "Overdue by " + str(late) + " days"
+    if days == 0:
+        return "Due today"
+    if days == 1:
+        return "Due tomorrow"
+    return "Due in " + str(days) + " days"
+
+
 def calculate_priority_score(
     assignment: Assignment,
     today: Optional[date] = None
 ) -> float:
     """Calculate an assignment priority score."""
-    if today is None:
-        today = date.today()
+    days = days_left(assignment.due_date, today)
 
-    try:
-        due = date.fromisoformat(assignment.due_date)
-        days_left = (due - today).days
-    except ValueError:
-        days_left = 30
+    if days is None:
+        days = 30
 
-    urgency = max(0, 14 - days_left)
-    overdue_bonus = 10 if days_left < 0 else 0
+    urgency = max(0, 14 - days)
+    overdue_bonus = 10 if days < 0 else 0
 
     score = (
         assignment.difficulty * 2
@@ -114,6 +314,25 @@ def refresh_priorities(state: State) -> None:
         assignment.priority_score = calculate_priority_score(
             assignment
         )
+
+
+def ranked_unfinished(state: State) -> list[Assignment]:
+    """Return unfinished assignments, highest priority first."""
+    refresh_priorities(state)
+
+    ranked = sorted(
+        state.assignments,
+        key=lambda assignment: assignment.priority_score,
+        reverse=True
+    )
+
+    result = []
+
+    for assignment in ranked:
+        if not assignment.completed:
+            result.append(assignment)
+
+    return result
 
 
 def calculate_required_score(
@@ -193,6 +412,66 @@ def make_initial_state() -> State:
 
 
 # -------------------------
+# UI HELPERS
+# -------------------------
+
+def stat_tile(label: str, value: str, note: str) -> Div:
+    """A small dashboard tile with a label, big value, and note."""
+    return Div(
+        Div(label, classes="stat-label"),
+        Div(value, classes="stat-value"),
+        Div(note, classes="stat-note"),
+        classes="stat"
+    )
+
+
+def priority_pill(score: float) -> Span:
+    """A colored High / Medium / Low label for a priority score."""
+    if score >= 20:
+        return Span("High priority", classes="pill pill-high")
+    if score >= 12:
+        return Span("Medium priority", classes="pill pill-medium")
+    return Span("Low priority", classes="pill pill-low")
+
+
+def message_box(text: str, kind: str = "info"):
+    """Show a colored message box, or nothing if there is no text."""
+    if not text:
+        return ""
+    return Div(text, classes="msg msg-" + kind)
+
+
+def field_label(text: str) -> Span:
+    """A bold label that sits above a form field."""
+    return Span(text, classes="label")
+
+
+def up_next_card(state: State) -> Div:
+    """Show the single most important unfinished assignment."""
+    ranked = ranked_unfinished(state)
+
+    if not ranked:
+        return Div(
+            Div("Up next", classes="stat-label"),
+            Div("You're all caught up!", classes="up-name"),
+            Div("No unfinished assignments. Enjoy the break.",
+                classes="muted"),
+            classes="card"
+        )
+
+    top = ranked[0]
+
+    return Div(
+        Div("Up next", classes="stat-label"),
+        Div(top.name, classes="up-name"),
+        Div(top.course + " · " + due_description(top.due_date),
+            classes="muted"),
+        priority_pill(top.priority_score),
+        classes="card"
+    )
+
+
+# -------------------------
 # HOME PAGE
 # -------------------------
 
@@ -222,18 +501,35 @@ def home(
     finished = completed_count(state)
     total = len(state.assignments)
 
+    if gpa >= state.target_gpa:
+        gpa_note = "You're on track!"
+    else:
+        gpa_note = (
+            str(round(state.target_gpa - gpa, 2)) + " to go"
+        )
+
     return Page(state, [
         Header("GradePilot"),
         Header("Your Academic Dashboard", 2),
+        Div("Plan smarter, study steadier, and hit your target GPA.",
+            classes="subtitle"),
 
-        "Current GPA: " + str(round(gpa, 2)) + "\n",
-        "Target GPA: " + str(state.target_gpa) + "\n",
-        "Completed assignments: " + str(finished)
-        + " / " + str(total) + "\n",
-        "Weekly study goal: "
-        + str(state.weekly_study_goal) + " minutes\n",
+        Div(
+            stat_tile("Current GPA", str(round(gpa, 2)), gpa_note),
+            stat_tile("Target GPA", str(state.target_gpa),
+                      "Your goal this term"),
+            stat_tile("Assignments done",
+                      str(finished) + " / " + str(total),
+                      "Keep the streak going"),
+            stat_tile("Weekly study goal",
+                      str(state.weekly_study_goal),
+                      "minutes per week"),
+            classes="stats"
+        ),
 
-        Header("Navigate", 2),
+        up_next_card(state),
+
+        Header("Jump to", 2),
         Button("Assignments", "assignments"),
         Button("Grades", "grades"),
         Button("Priorities", "priorities"),
@@ -253,7 +549,7 @@ def assignments(
     """Display assignments and completion information."""
     state.show_completed = show_completed
 
-    visible_assignments = []
+    visible_assignments: list[list[Any]] = []
 
     for assignment in state.assignments:
         if state.show_completed or not assignment.completed:
@@ -261,9 +557,9 @@ def assignments(
                 assignment.name,
                 assignment.course,
                 assignment.due_date,
-                str(assignment.difficulty),
-                str(assignment.estimated_hours),
-                "Yes" if assignment.completed else "No"
+                str(assignment.difficulty) + " / 5",
+                str(assignment.estimated_hours) + " h",
+                "Done" if assignment.completed else "To do"
             ])
 
     if not visible_assignments:
@@ -272,17 +568,21 @@ def assignments(
 
     return Page(state, [
         Header("Assignments"),
+        Div("Everything on your plate, in one place.",
+            classes="subtitle"),
 
         Table(
             visible_assignments,
             ["Name", "Course", "Due Date", "Difficulty",
-             "Hours", "Completed"]
+             "Hours", "Status"]
         ),
 
         "Show completed assignments: ",
         CheckBox("show_completed", state.show_completed),
+        LineBreak(),
         Button("Update Assignment List", "assignments"),
         Button("Add Assignment", "add_assignment"),
+        LineBreak(),
         Link("Return Home", "home")
     ])
 
@@ -313,33 +613,27 @@ def add_assignment(
             state.form_message = "Hours must be greater than zero."
         elif difficulty < 1 or difficulty > 5:
             state.form_message = "Difficulty must be from 1 to 5."
+        elif parse_date(due_date) is None:
+            state.form_message = "Enter the due date as YYYY-MM-DD."
         else:
-            try:
-                date.fromisoformat(due_date)
+            new_assignment = Assignment(
+                assignment_name.strip(),
+                course_name,
+                due_date,
+                difficulty,
+                estimated_hours,
+                grade,
+                completed,
+                0.0
+            )
 
-                new_assignment = Assignment(
-                    assignment_name.strip(),
-                    course_name,
-                    due_date,
-                    difficulty,
-                    estimated_hours,
-                    grade,
-                    completed,
-                    0.0
-                )
+            new_assignment.priority_score = (
+                calculate_priority_score(new_assignment)
+            )
 
-                new_assignment.priority_score = (
-                    calculate_priority_score(new_assignment)
-                )
-
-                state.assignments.append(new_assignment)
-                state.form_message = ""
-                return assignments(state)
-
-            except ValueError:
-                state.form_message = (
-                    "Enter the due date as YYYY-MM-DD."
-                )
+            state.assignments.append(new_assignment)
+            state.form_message = ""
+            return assignments(state)
 
     course_names = [course.name for course in state.courses]
 
@@ -350,35 +644,42 @@ def add_assignment(
 
     return Page(state, [
         Header("Add Assignment"),
+        Div("Add something new and we'll work out its priority.",
+            classes="subtitle"),
 
-        state.form_message,
+        message_box(state.form_message, "error"),
 
-        "Assignment name:",
-        TextBox("assignment_name"),
+        Div(
+            field_label("Assignment name"),
+            TextBox("assignment_name"),
 
-        "Course:",
-        SelectBox("course_name", course_names, selected),
+            field_label("Course"),
+            SelectBox("course_name", course_names, selected),
 
-        "Due date (YYYY-MM-DD):",
-        TextBox("due_date", date.today().isoformat()),
+            field_label("Due date (YYYY-MM-DD)"),
+            TextBox("due_date", date.today().isoformat()),
 
-        "Difficulty (1-5):",
-        SelectBox(
-            "difficulty",
-            ["1", "2", "3", "4", "5"],
-            "3"
+            field_label("Difficulty (1-5)"),
+            SelectBox(
+                "difficulty",
+                ["1", "2", "3", "4", "5"],
+                "3"
+            ),
+
+            field_label("Estimated hours"),
+            TextBox("estimated_hours", 1.0, "number"),
+
+            field_label("Grade received (enter 0 if unknown)"),
+            TextBox("grade", 0.0, "number"),
+
+            field_label("Already completed"),
+            CheckBox("completed"),
+
+            classes="card"
         ),
 
-        "Estimated hours:",
-        TextBox("estimated_hours", 1.0, "number"),
-
-        "Grade received (enter 0 if unknown):",
-        TextBox("grade", 0.0, "number"),
-
-        "Already completed:",
-        CheckBox("completed"),
-
-        Button("Save Assignment", "add_assignment")
+        Button("Save Assignment", "add_assignment"),
+        Link("Cancel", "assignments")
     ])
 
 
@@ -398,20 +699,22 @@ def grades(
     if course_name:
         state.selected_course = course_name
 
-    grade_rows = []
+    grade_rows: list[list[Any]] = []
 
     for course in state.courses:
         grade_rows.append([
             course.name,
             str(course.current_grade) + "%",
             str(course.target_grade) + "%",
-            str(course.weight * 100) + "%"
+            str(round(course.weight * 100)) + "%"
         ])
 
     course_names = [course.name for course in state.courses]
 
     return Page(state, [
         Header("Grades"),
+        Div("See where you stand in every class.",
+            classes="subtitle"),
 
         Table(
             grade_rows,
@@ -419,14 +722,18 @@ def grades(
              "Course Weight"]
         ),
 
-        "Select a course to calculate its target grade:",
-        SelectBox(
-            "course_name",
-            course_names,
-            state.selected_course
+        Div(
+            field_label("Select a course to calculate its target grade"),
+            SelectBox(
+                "course_name",
+                course_names,
+                state.selected_course
+            ),
+            classes="card"
         ),
 
         Button("Open Grade Calculator", "calculate_grade"),
+        LineBreak(),
         Link("Return Home", "home")
     ])
 
@@ -489,21 +796,24 @@ def calculate_grade(
 
     return Page(state, [
         Header("Calculate Grade"),
+        Div("Course: " + course.name, classes="subtitle"),
 
-        "Course: " + course.name,
+        Div(
+            field_label("Current grade"),
+            TextBox("current_grade", course.current_grade, "number"),
 
-        "Current grade:",
-        TextBox("current_grade", course.current_grade, "number"),
+            field_label("Target grade"),
+            TextBox("target_grade", course.target_grade, "number"),
 
-        "Target grade:",
-        TextBox("target_grade", course.target_grade, "number"),
+            field_label("Percentage of grade still remaining"),
+            TextBox("remaining_weight", remaining_weight, "number"),
 
-        "Percentage of grade still remaining:",
-        TextBox("remaining_weight", remaining_weight, "number"),
+            classes="card"
+        ),
 
         Button("Calculate Required Score", "calculate_grade"),
 
-        state.calculation_message,
+        message_box(state.calculation_message, "info"),
 
         Button("Back to Grades", "grades")
     ])
@@ -516,36 +826,38 @@ def calculate_grade(
 @route
 def priorities(state: State) -> Page:
     """Display assignments ranked by priority score."""
-    refresh_priorities(state)
+    ranked = ranked_unfinished(state)
 
-    ranked_assignments = sorted(
-        state.assignments,
-        key=lambda assignment: assignment.priority_score,
-        reverse=True
-    )
+    cards = []
+    rank = 1
 
-    priority_list = []
+    for assignment in ranked:
+        cards.append(Div(
+            Div(
+                Span(str(rank), classes="rank"),
+                Span(assignment.name, classes="task-name"),
+                Span(assignment.course + " · "
+                     + due_description(assignment.due_date),
+                     classes="muted"),
+                priority_pill(assignment.priority_score),
+                classes="task"
+            ),
+            classes="card"
+        ))
+        rank += 1
 
-    for assignment in ranked_assignments:
-        if not assignment.completed:
-            priority_list.append(
-                assignment.name
-                + " | " + assignment.course
-                + " | Due: " + assignment.due_date
-                + " | Priority: "
-                + str(assignment.priority_score)
-            )
+    if not cards:
+        cards = [Div("No unfinished assignments!", classes="card")]
 
-    if not priority_list:
-        priority_list = ["No unfinished assignments!"]
-
-    return Page(state, [
+    content = [
         Header("Assignment Priorities"),
-        "Assignments are ranked from highest to lowest priority.",
-        NumberedList(priority_list),
-        Button("View Assignments", "assignments"),
-        Link("Return Home", "home")
-    ])
+        "Assignments are ranked from highest to lowest priority."
+    ]
+    content.extend(cards)
+    content.append(Button("View Assignments", "assignments"))
+    content.append(Link("Return Home", "home"))
+
+    return Page(state, content)
 
 
 # -------------------------
@@ -568,25 +880,40 @@ def progress(
     if total > 0:
         percentage = finished / total * 100
 
+    hours = round(state.weekly_study_goal / 60, 1)
+
     return Page(state, [
         Header("Academic Progress"),
+        Div("Small wins add up. Here's how you're doing.",
+            classes="subtitle"),
 
-        "Completed assignments: "
-        + str(finished) + " out of " + str(total),
+        Div(
+            stat_tile("Completed",
+                      str(finished) + " / " + str(total),
+                      "assignments finished"),
+            stat_tile("Completion",
+                      str(round(percentage, 1)) + "%",
+                      "of your workload"),
+            stat_tile("Weekly goal",
+                      str(hours) + " h",
+                      str(state.weekly_study_goal) + " minutes"),
+            classes="stats"
+        ),
 
         ProgressBar(finished, max(total, 1)),
 
-        "Completion percentage: "
-        + str(round(percentage, 1)) + "%",
-
-        "Weekly study goal (minutes):",
-        TextBox(
-            "weekly_study_goal",
-            state.weekly_study_goal,
-            "number"
+        Div(
+            field_label("Weekly study goal (minutes)"),
+            TextBox(
+                "weekly_study_goal",
+                state.weekly_study_goal,
+                "number"
+            ),
+            classes="card"
         ),
 
         Button("Update Study Goal", "progress"),
+        LineBreak(),
         Link("Return Home", "home")
     ])
 
@@ -607,7 +934,8 @@ def test_home_route() -> None:
     state = make_initial_state()
     page = home(state)
     assert assert_has(page, Button("Assignments", "assignments"))
-    assert assert_has(page, "Target GPA")
+    assert assert_has(page, "Your Academic Dashboard")
+    assert state.target_gpa == 3.5
 
 
 def test_assignments_route() -> None:
@@ -643,6 +971,19 @@ def test_add_assignment_route() -> None:
     assert state.assignments[-1].name == "Unit Test Assignment"
 
 
+def test_add_assignment_bad_date() -> None:
+    """Test that an invalid date is rejected."""
+    state = make_initial_state()
+    old_count = len(state.assignments)
+
+    add_assignment(
+        state, "Bad Date", "Biology", "tomorrow", 3, 1.0, 0.0, False
+    )
+
+    assert len(state.assignments) == old_count
+    assert state.form_message == "Enter the due date as YYYY-MM-DD."
+
+
 def test_grades_route() -> None:
     """Test that the grades page displays course information."""
     state = make_initial_state()
@@ -674,7 +1015,7 @@ def test_priorities_route() -> None:
     state = make_initial_state()
     page = priorities(state)
     assert assert_has(page, "Assignment Priorities")
-    assert assert_has(page, "Chapter 4 Review")
+    assert ranked_unfinished(state)[0].name == "Chapter 4 Review"
 
 
 def test_progress_route() -> None:
@@ -683,7 +1024,6 @@ def test_progress_route() -> None:
     page = progress(state, 300)
 
     assert state.weekly_study_goal == 300
-    assert assert_has(page, "Completed assignments")
     assert assert_has(page, "Academic Progress")
 
 
@@ -720,6 +1060,7 @@ def run_tests() -> None:
     test_home_route()
     test_assignments_route()
     test_add_assignment_route()
+    test_add_assignment_bad_date()
     test_grades_route()
     test_calculate_grade_route()
     test_priorities_route()
