@@ -948,8 +948,18 @@ def parse_number(text: str) -> Optional[float]:
 # GOALS & GPA PAGE
 # -------------------------
 
+def total_weight_percent(state: State) -> float:
+    """Add up all course weights as a percentage."""
+    total = 0.0
+
+    for course in state.courses:
+        total += course.weight
+
+    return round(total * 100, 1)
+
+
 def goals_page(state: State) -> Page:
-    """Build the page where students edit their GPA target and grades."""
+    """Build the page where students edit goals, grades and courses."""
     gpa = calculate_gpa(state)
     course_names = [course.name for course in state.courses]
 
@@ -964,7 +974,7 @@ def goals_page(state: State) -> Page:
         rows.append([
             course.name,
             str(course.current_grade) + "%",
-            str(round(course.weight * 100)) + "%"
+            str(round(course.weight * 100, 1)) + "%"
         ])
 
     if gpa >= state.target_gpa:
@@ -979,7 +989,7 @@ def goals_page(state: State) -> Page:
 
     return Page(state, [
         Header("Goals & GPA"),
-        Div("🎯 Set your target GPA and keep your grades up to date.",
+        Div("🎯 Set your target GPA and keep your courses up to date.",
             classes="subtitle"),
 
         message_box(state.goals_message, message_kind),
@@ -1000,17 +1010,40 @@ def goals_page(state: State) -> Page:
         ),
 
         Div(
+            Div("✏️ Edit a course", classes="stat-label"),
             field_label("Course"),
             SelectBox("course_name", course_names, selected),
             field_label("New current grade (0 - 100)"),
             TextBox("new_grade", ""),
-            Div("Your current GPA updates automatically from "
-                "your course grades.", classes="muted"),
             Button("Save Course Grade", "save_grade"),
+            field_label("New weight (1 - 100)"),
+            TextBox("new_weight", ""),
+            Div("Weight is how much the course counts toward your GPA, "
+                "like credit hours. Weights don't need to add up to "
+                "100.", classes="muted"),
+            Button("Save Course Weight", "save_weight"),
+            Div("Removing a course also removes its assignments.",
+                classes="muted"),
+            Button("Remove Course", "remove_course"),
+            classes="card"
+        ),
+
+        Div(
+            Div("➕ Add a course", classes="stat-label"),
+            field_label("Course name"),
+            TextBox("new_course_name", ""),
+            field_label("Starting grade (0 - 100)"),
+            TextBox("new_course_grade", ""),
+            field_label("Weight (1 - 100)"),
+            TextBox("new_course_weight", ""),
+            Button("Add Course", "add_course"),
             classes="card"
         ),
 
         Table(rows, ["Course", "Current Grade", "Course Weight"]),
+        Div("Weights currently add up to "
+            + str(total_weight_percent(state)) + "%.",
+            classes="muted"),
 
         Link("Return Home", "home")
     ])
@@ -1021,7 +1054,11 @@ def goals(
     state: State,
     target_gpa: str = "",
     course_name: str = "",
-    new_grade: str = ""
+    new_grade: str = "",
+    new_weight: str = "",
+    new_course_name: str = "",
+    new_course_grade: str = "",
+    new_course_weight: str = ""
 ) -> Page:
     """Open the goals and GPA page."""
     state.goals_message = ""
@@ -1033,7 +1070,11 @@ def save_target(
     state: State,
     target_gpa: str = "",
     course_name: str = "",
-    new_grade: str = ""
+    new_grade: str = "",
+    new_weight: str = "",
+    new_course_name: str = "",
+    new_course_grade: str = "",
+    new_course_weight: str = ""
 ) -> Page:
     """Save a new target GPA."""
     value = parse_number(target_gpa)
@@ -1059,7 +1100,11 @@ def save_grade(
     state: State,
     target_gpa: str = "",
     course_name: str = "",
-    new_grade: str = ""
+    new_grade: str = "",
+    new_weight: str = "",
+    new_course_name: str = "",
+    new_course_grade: str = "",
+    new_course_weight: str = ""
 ) -> Page:
     """Save a new current grade for one course."""
     course = find_course(state, course_name)
@@ -1077,6 +1122,121 @@ def save_grade(
         state.goals_message = (
             course.name + " is now " + str(value) + "%. "
             "Your GPA is " + str(round(calculate_gpa(state), 2)) + "."
+        )
+
+    return goals_page(state)
+
+
+@route
+def save_weight(
+    state: State,
+    target_gpa: str = "",
+    course_name: str = "",
+    new_grade: str = "",
+    new_weight: str = "",
+    new_course_name: str = "",
+    new_course_grade: str = "",
+    new_course_weight: str = ""
+) -> Page:
+    """Save a new weight for one course."""
+    course = find_course(state, course_name)
+    value = parse_number(new_weight)
+
+    if course is None:
+        state.goals_message = "Please choose a valid course."
+    elif value is None or value <= 0 or value > 100:
+        state.goals_message = (
+            "Please enter a weight greater than 0 and at most 100."
+        )
+    else:
+        course.weight = round(value / 100, 4)
+        state.selected_course = course.name
+        state.goals_message = (
+            course.name + " now has a weight of " + str(value)
+            + ". Your GPA is "
+            + str(round(calculate_gpa(state), 2)) + "."
+        )
+
+    return goals_page(state)
+
+
+@route
+def add_course(
+    state: State,
+    target_gpa: str = "",
+    course_name: str = "",
+    new_grade: str = "",
+    new_weight: str = "",
+    new_course_name: str = "",
+    new_course_grade: str = "",
+    new_course_weight: str = ""
+) -> Page:
+    """Add a new course."""
+    name = new_course_name.strip()
+    grade = parse_number(new_course_grade)
+    weight = parse_number(new_course_weight)
+
+    if name == "":
+        state.goals_message = "Please enter a course name."
+    elif find_course(state, name) is not None:
+        state.goals_message = (
+            "Please use a different name. That course already exists."
+        )
+    elif grade is None or grade < 0 or grade > 100:
+        state.goals_message = (
+            "Please enter a starting grade between 0 and 100."
+        )
+    elif weight is None or weight <= 0 or weight > 100:
+        state.goals_message = (
+            "Please enter a weight greater than 0 and at most 100."
+        )
+    else:
+        state.courses.append(
+            Course(name, grade, 90.0, round(weight / 100, 4))
+        )
+        state.selected_course = name
+        state.goals_message = (
+            "Added " + name + ". Your GPA is "
+            + str(round(calculate_gpa(state), 2)) + "."
+        )
+
+    return goals_page(state)
+
+
+@route
+def remove_course(
+    state: State,
+    target_gpa: str = "",
+    course_name: str = "",
+    new_grade: str = "",
+    new_weight: str = "",
+    new_course_name: str = "",
+    new_course_grade: str = "",
+    new_course_weight: str = ""
+) -> Page:
+    """Remove a course and the assignments that belong to it."""
+    course = find_course(state, course_name)
+
+    if course is None:
+        state.goals_message = "Please choose a valid course."
+    elif len(state.courses) <= 1:
+        state.goals_message = "Please keep at least one course."
+    else:
+        kept = []
+        removed = 0
+
+        for assignment in state.assignments:
+            if assignment.course == course.name:
+                removed += 1
+            else:
+                kept.append(assignment)
+
+        state.assignments = kept
+        state.courses.remove(course)
+        state.selected_course = state.courses[0].name
+        state.goals_message = (
+            "Removed " + course.name + " and "
+            + str(removed) + " assignment(s)."
         )
 
     return goals_page(state)
@@ -1354,6 +1514,50 @@ def test_save_grade_route() -> None:
     assert biology.current_grade == 95.0
 
 
+def test_save_weight_route() -> None:
+    """Test changing a course weight."""
+    state = make_initial_state()
+    biology = find_course(state, "Biology")
+    assert biology is not None
+
+    save_weight(state, "", "Biology", "", "50")
+    assert biology.weight == 0.5
+
+    save_weight(state, "", "Biology", "", "0")
+    assert biology.weight == 0.5
+    assert state.goals_message.startswith("Please")
+
+
+def test_add_course_route() -> None:
+    """Test adding a course, and rejecting a duplicate."""
+    state = make_initial_state()
+    old_count = len(state.courses)
+
+    add_course(state, "", "", "", "", "Chemistry", "85", "30")
+    assert len(state.courses) == old_count + 1
+    chemistry = find_course(state, "Chemistry")
+    assert chemistry is not None
+    assert chemistry.weight == 0.3
+
+    add_course(state, "", "", "", "", "Chemistry", "85", "30")
+    assert len(state.courses) == old_count + 1
+
+
+def test_remove_course_route() -> None:
+    """Test removing a course and its assignments."""
+    state = make_initial_state()
+
+    remove_course(state, "", "Biology")
+    assert find_course(state, "Biology") is None
+
+    for assignment in state.assignments:
+        assert assignment.course != "Biology"
+
+    remove_course(state, "", "Computer Science")
+    remove_course(state, "", "Math")
+    assert len(state.courses) == 1
+
+
 def run_tests() -> None:
     """Run all route and helper function tests."""
     test_index_route()
@@ -1368,6 +1572,9 @@ def run_tests() -> None:
     test_goals_route()
     test_save_target_route()
     test_save_grade_route()
+    test_save_weight_route()
+    test_add_course_route()
+    test_remove_course_route()
     test_priority_calculation()
     test_required_score_calculation()
 
