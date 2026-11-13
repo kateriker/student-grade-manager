@@ -292,6 +292,7 @@ class State:
     weekly_study_goal: int
     calculation_message: str
     form_message: str
+    goals_message: str
 
 
 # -------------------------
@@ -499,6 +500,7 @@ def make_initial_state() -> State:
         False,
         600,
         "",
+        "",
         ""
     )
 
@@ -647,7 +649,8 @@ def home(
         Button("Assignments", "assignments"),
         Button("Grades", "grades"),
         Button("Priorities", "priorities"),
-        Button("Progress", "progress")
+        Button("Progress", "progress"),
+        Button("Goals & GPA", "goals")
     ])
 
 
@@ -933,6 +936,152 @@ def calculate_grade(
     ])
 
 
+def parse_number(text: str) -> Optional[float]:
+    """Turn typed text into a number, or None if it is not a number."""
+    try:
+        return float(text.strip())
+    except ValueError:
+        return None
+
+
+# -------------------------
+# GOALS & GPA PAGE
+# -------------------------
+
+def goals_page(state: State) -> Page:
+    """Build the page where students edit their GPA target and grades."""
+    gpa = calculate_gpa(state)
+    course_names = [course.name for course in state.courses]
+
+    if state.selected_course not in course_names:
+        selected = course_names[0]
+    else:
+        selected = state.selected_course
+
+    rows: list[list[Any]] = []
+
+    for course in state.courses:
+        rows.append([
+            course.name,
+            str(course.current_grade) + "%",
+            str(round(course.weight * 100)) + "%"
+        ])
+
+    if gpa >= state.target_gpa:
+        gap_note = "You've reached your goal!"
+    else:
+        gap_note = str(round(state.target_gpa - gpa, 2)) + " to go"
+
+    if state.goals_message.startswith("Please"):
+        message_kind = "error"
+    else:
+        message_kind = "info"
+
+    return Page(state, [
+        Header("Goals & GPA"),
+        Div("🎯 Set your target GPA and keep your grades up to date.",
+            classes="subtitle"),
+
+        message_box(state.goals_message, message_kind),
+
+        Div(
+            stat_tile("Current GPA", str(round(gpa, 2)),
+                      "Calculated from your course grades", "🎓"),
+            stat_tile("Target GPA", str(state.target_gpa),
+                      gap_note, "🎯"),
+            classes="stats"
+        ),
+
+        Div(
+            field_label("Target GPA (0.0 - 4.0)"),
+            TextBox("target_gpa", str(state.target_gpa)),
+            Button("Save Target GPA", "save_target"),
+            classes="card"
+        ),
+
+        Div(
+            field_label("Course"),
+            SelectBox("course_name", course_names, selected),
+            field_label("New current grade (0 - 100)"),
+            TextBox("new_grade", ""),
+            Div("Your current GPA updates automatically from "
+                "your course grades.", classes="muted"),
+            Button("Save Course Grade", "save_grade"),
+            classes="card"
+        ),
+
+        Table(rows, ["Course", "Current Grade", "Course Weight"]),
+
+        Link("Return Home", "home")
+    ])
+
+
+@route
+def goals(
+    state: State,
+    target_gpa: str = "",
+    course_name: str = "",
+    new_grade: str = ""
+) -> Page:
+    """Open the goals and GPA page."""
+    state.goals_message = ""
+    return goals_page(state)
+
+
+@route
+def save_target(
+    state: State,
+    target_gpa: str = "",
+    course_name: str = "",
+    new_grade: str = ""
+) -> Page:
+    """Save a new target GPA."""
+    value = parse_number(target_gpa)
+
+    if course_name:
+        state.selected_course = course_name
+
+    if value is None or value < 0 or value > 4:
+        state.goals_message = (
+            "Please enter a target GPA between 0.0 and 4.0."
+        )
+    else:
+        state.target_gpa = round(value, 2)
+        state.goals_message = (
+            "Target GPA updated to " + str(state.target_gpa) + "."
+        )
+
+    return goals_page(state)
+
+
+@route
+def save_grade(
+    state: State,
+    target_gpa: str = "",
+    course_name: str = "",
+    new_grade: str = ""
+) -> Page:
+    """Save a new current grade for one course."""
+    course = find_course(state, course_name)
+    value = parse_number(new_grade)
+
+    if course is None:
+        state.goals_message = "Please choose a valid course."
+    elif value is None or value < 0 or value > 100:
+        state.goals_message = (
+            "Please enter a grade between 0 and 100."
+        )
+    else:
+        course.current_grade = value
+        state.selected_course = course.name
+        state.goals_message = (
+            course.name + " is now " + str(value) + "%. "
+            "Your GPA is " + str(round(calculate_gpa(state), 2)) + "."
+        )
+
+    return goals_page(state)
+
+
 # -------------------------
 # PRIORITIES PAGE
 # -------------------------
@@ -1167,6 +1316,44 @@ def test_required_score_calculation() -> None:
     assert result == 100.0
 
 
+def test_goals_route() -> None:
+    """Test that the goals page opens."""
+    state = make_initial_state()
+    page = goals(state)
+    assert assert_has(page, "Goals & GPA")
+
+
+def test_save_target_route() -> None:
+    """Test changing the target GPA, valid and invalid."""
+    state = make_initial_state()
+
+    save_target(state, "3.8")
+    assert state.target_gpa == 3.8
+
+    save_target(state, "9")
+    assert state.target_gpa == 3.8
+    assert state.goals_message.startswith("Please")
+
+    save_target(state, "abc")
+    assert state.target_gpa == 3.8
+
+
+def test_save_grade_route() -> None:
+    """Test changing a course grade and the resulting GPA."""
+    state = make_initial_state()
+    before = calculate_gpa(state)
+
+    biology = find_course(state, "Biology")
+    assert biology is not None
+
+    save_grade(state, "", "Biology", "95")
+    assert biology.current_grade == 95.0
+    assert calculate_gpa(state) > before
+
+    save_grade(state, "", "Biology", "150")
+    assert biology.current_grade == 95.0
+
+
 def run_tests() -> None:
     """Run all route and helper function tests."""
     test_index_route()
@@ -1178,6 +1365,9 @@ def run_tests() -> None:
     test_calculate_grade_route()
     test_priorities_route()
     test_progress_route()
+    test_goals_route()
+    test_save_target_route()
+    test_save_grade_route()
     test_priority_calculation()
     test_required_score_calculation()
 
