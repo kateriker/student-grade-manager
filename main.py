@@ -22,144 +22,239 @@ set_website_framed(False)
 set_website_style("none")
 
 add_website_css("""
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+    --bg1: #f5f3ff; --bg2: #fdf2f8; --bg3: #ecfeff;
+    --card: rgba(255, 255, 255, 0.85);
+    --field: #ffffff;
+    --text: #1f2340;
+    --muted: #6b7280;
+    --border: #e9e5ff;
+    --primary: #7c3aed;
+    --pink: #ec4899;
+    --amber: #f59e0b;
+    --shadow: 0 10px 30px rgba(124, 58, 237, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg1: #0f0b24; --bg2: #1a1038; --bg3: #0b1f33;
+        --card: rgba(30, 26, 70, 0.85);
+        --field: #25214f;
+        --text: #eef0ff;
+        --muted: #a5a8c8;
+        --border: #38337a;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+}
+
 body {
-    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
-        sans-serif;
-    background: linear-gradient(160deg, #eef2ff 0%, #f8fafc 45%,
-        #ecfeff 100%);
+    font-family: "Nunito", -apple-system, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 50%,
+        var(--bg3) 100%);
     background-attachment: fixed;
-    color: #1e293b;
-    line-height: 1.55;
+    color: var(--text);
+    line-height: 1.6;
     margin: 0;
-    padding: 24px 16px 56px 16px;
+    padding: 28px 16px 64px 16px;
 }
-form, [id^="drafter-form"] {
-    max-width: 880px;
-    margin: 0 auto;
-}
+form, [id^="drafter-form"] { max-width: 900px; margin: 0 auto; }
+
 h1 {
-    font-size: 2.3rem;
-    margin: 0 0 2px 0;
-    color: #4338ca;
-    letter-spacing: -0.02em;
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.03em;
+    color: var(--primary);
+    background: linear-gradient(90deg, #7c3aed, #ec4899, #f59e0b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 h2 {
-    font-size: 1.2rem;
-    margin: 26px 0 10px 0;
-    color: #334155;
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 28px 0 10px 0;
+    color: var(--text);
 }
-.subtitle { color: #64748b; margin-bottom: 18px; }
-.muted { color: #64748b; font-size: 0.92rem; }
+.subtitle { color: var(--muted); font-size: 1.05rem; }
+.vibe {
+    display: inline-block;
+    margin: 10px 0 6px 0;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(90deg, #7c3aed, #ec4899);
+    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.3);
+}
+.muted { color: var(--muted); font-size: 0.95rem; }
 
 .card, .stat, table {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    box-shadow: 0 4px 14px rgba(30, 41, 59, 0.06);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+    animation: pop 0.35s ease both;
 }
-.card { padding: 18px 20px; margin: 14px 0; }
-.stats { display: flex; flex-wrap: wrap; gap: 14px; margin: 16px 0; }
-.stat { flex: 1 1 180px; padding: 16px 18px; }
+.card { padding: 20px 22px; margin: 16px 0; }
+.card:hover, .stat:hover {
+    transform: translateY(-3px);
+    transition: transform 0.2s;
+}
+.stats { display: flex; flex-wrap: wrap; gap: 16px; margin: 20px 0; }
+.stat {
+    flex: 1 1 190px;
+    padding: 16px 18px;
+    border-top: 6px solid var(--c, #7c3aed);
+}
+.stats .stat:nth-child(1) { --c: #7c3aed; }
+.stats .stat:nth-child(2) { --c: #ec4899; }
+.stats .stat:nth-child(3) { --c: #10b981; }
+.stats .stat:nth-child(4) { --c: #f59e0b; }
+.stat-icon { font-size: 1.6rem; }
 .stat-label {
     font-size: 0.78rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: #64748b;
+    letter-spacing: 0.08em;
+    color: var(--muted);
 }
-.stat-value { font-size: 2rem; font-weight: 700; color: #4338ca; }
-.stat-note { font-size: 0.88rem; color: #64748b; }
-.up-name { font-size: 1.4rem; font-weight: 700; margin: 4px 0; }
+.stat-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--c, #7c3aed);
+    line-height: 1.2;
+}
+.stat-note { font-size: 0.9rem; color: var(--muted); }
+.up-name { font-size: 1.6rem; font-weight: 800; margin: 4px 0; }
 
 button, input[type=submit], input[type=button] {
-    background: #4f46e5;
+    background: linear-gradient(90deg, #7c3aed, #ec4899);
     color: #ffffff;
     border: 0;
-    border-radius: 10px;
-    padding: 10px 18px;
-    margin: 4px 8px 4px 0;
+    border-radius: 999px;
+    padding: 11px 24px;
+    margin: 6px 10px 6px 0;
+    font-family: inherit;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 800;
     cursor: pointer;
-    transition: background 0.15s, transform 0.15s;
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
 }
 button:hover, input[type=submit]:hover, input[type=button]:hover {
-    background: #4338ca;
-    transform: translateY(-1px);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 10px 22px rgba(236, 72, 153, 0.35);
 }
-a { color: #4f46e5; font-weight: 600; text-decoration: none; }
+button:active, input[type=submit]:active { transform: scale(0.97); }
+a { color: var(--primary); font-weight: 800; text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 input[type=text], input[type=number], select, textarea {
-    padding: 9px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-family: inherit;
     font-size: 1rem;
     margin: 4px 0 10px 0;
     max-width: 100%;
     box-sizing: border-box;
-    background: #ffffff;
+    background: var(--field);
+    color: var(--text);
 }
 input:focus, select:focus, textarea:focus {
-    outline: 2px solid #a5b4fc;
-    border-color: #6366f1;
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2);
 }
-.label { display: block; font-weight: 600; margin-top: 8px; }
+input[type=checkbox] {
+    width: 20px;
+    height: 20px;
+    accent-color: #7c3aed;
+    vertical-align: middle;
+}
+.label { display: block; font-weight: 800; margin-top: 10px; }
 
 table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     overflow: hidden;
-    margin: 12px 0;
+    margin: 14px 0;
 }
 th {
-    background: #4f46e5;
+    background: linear-gradient(90deg, #7c3aed, #ec4899);
     color: #ffffff;
     text-align: left;
-    padding: 10px 12px;
+    padding: 12px 14px;
     font-size: 0.85rem;
+    letter-spacing: 0.04em;
 }
-td { padding: 10px 12px; border-bottom: 1px solid #eef2f7; }
-tr:nth-child(even) td { background: #f8fafc; }
+td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+tr:hover td { background: rgba(124, 58, 237, 0.08); }
 
 progress {
     width: 100%;
-    height: 16px;
-    accent-color: #4f46e5;
-    margin: 8px 0;
+    height: 20px;
+    margin: 10px 0;
+    border: 0;
+    border-radius: 999px;
+    overflow: hidden;
+    appearance: none;
+    -webkit-appearance: none;
+    accent-color: #ec4899;
+}
+progress::-webkit-progress-bar { background: var(--border); }
+progress::-webkit-progress-value {
+    background: linear-gradient(90deg, #7c3aed, #ec4899, #f59e0b);
+    border-radius: 999px;
+}
+progress::-moz-progress-bar {
+    background: linear-gradient(90deg, #7c3aed, #ec4899, #f59e0b);
 }
 
-.task { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.task { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .rank {
-    background: #e0e7ff;
-    color: #4338ca;
-    font-weight: 700;
-    border-radius: 999px;
-    width: 30px;
-    height: 30px;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    color: #ffffff;
+    font-weight: 800;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
 }
-.task-name { font-weight: 700; flex: 1 1 200px; }
+.task-name { font-weight: 800; font-size: 1.1rem; flex: 1 1 200px; }
 .pill {
-    font-size: 0.78rem;
-    font-weight: 700;
+    font-size: 0.82rem;
+    font-weight: 800;
     border-radius: 999px;
-    padding: 3px 12px;
+    padding: 4px 14px;
 }
 .pill-high { background: #fee2e2; color: #b91c1c; }
 .pill-medium { background: #fef3c7; color: #b45309; }
-.pill-low { background: #dcfce7; color: #15803d; }
+.pill-low { background: #d1fae5; color: #047857; }
 
 .msg {
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin: 12px 0;
-    font-weight: 600;
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-weight: 700;
 }
 .msg-error { background: #fee2e2; color: #b91c1c; }
-.msg-info { background: #e0e7ff; color: #3730a3; }
+.msg-info { background: #ede9fe; color: #5b21b6; }
+
+@keyframes pop {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+}
 """)
 
 
@@ -415,9 +510,12 @@ def make_initial_state() -> State:
 # UI HELPERS
 # -------------------------
 
-def stat_tile(label: str, value: str, note: str) -> Div:
+def stat_tile(
+    label: str, value: str, note: str, icon: str = ""
+) -> Div:
     """A small dashboard tile with a label, big value, and note."""
     return Div(
+        Div(icon, classes="stat-icon"),
         Div(label, classes="stat-label"),
         Div(value, classes="stat-value"),
         Div(note, classes="stat-note"),
@@ -428,10 +526,10 @@ def stat_tile(label: str, value: str, note: str) -> Div:
 def priority_pill(score: float) -> Span:
     """A colored High / Medium / Low label for a priority score."""
     if score >= 20:
-        return Span("High priority", classes="pill pill-high")
+        return Span("🔥 High priority", classes="pill pill-high")
     if score >= 12:
-        return Span("Medium priority", classes="pill pill-medium")
-    return Span("Low priority", classes="pill pill-low")
+        return Span("⚡ Medium priority", classes="pill pill-medium")
+    return Span("🌱 Low priority", classes="pill pill-low")
 
 
 def message_box(text: str, kind: str = "info"):
@@ -446,13 +544,24 @@ def field_label(text: str) -> Span:
     return Span(text, classes="label")
 
 
+def vibe_message(percentage: float) -> str:
+    """A short motivational message based on progress."""
+    if percentage >= 100:
+        return "🎉 Everything is done. You are unstoppable!"
+    if percentage >= 50:
+        return "🚀 Over halfway there. Keep the momentum!"
+    if percentage > 0:
+        return "🌱 Great start. One assignment at a time."
+    return "☕ Fresh slate. Pick one task and begin!"
+
+
 def up_next_card(state: State) -> Div:
     """Show the single most important unfinished assignment."""
     ranked = ranked_unfinished(state)
 
     if not ranked:
         return Div(
-            Div("Up next", classes="stat-label"),
+            Div("🎉 Up next", classes="stat-label"),
             Div("You're all caught up!", classes="up-name"),
             Div("No unfinished assignments. Enjoy the break.",
                 classes="muted"),
@@ -462,7 +571,7 @@ def up_next_card(state: State) -> Div:
     top = ranked[0]
 
     return Div(
-        Div("Up next", classes="stat-label"),
+        Div("🎯 Up next", classes="stat-label"),
         Div(top.name, classes="up-name"),
         Div(top.course + " · " + due_description(top.due_date),
             classes="muted"),
@@ -500,6 +609,10 @@ def home(
     gpa = calculate_gpa(state)
     finished = completed_count(state)
     total = len(state.assignments)
+    percent_done = 0.0
+
+    if total > 0:
+        percent_done = finished / total * 100
 
     if gpa >= state.target_gpa:
         gpa_note = "You're on track!"
@@ -513,17 +626,18 @@ def home(
         Header("Your Academic Dashboard", 2),
         Div("Plan smarter, study steadier, and hit your target GPA.",
             classes="subtitle"),
+        Div(vibe_message(percent_done), classes="vibe"),
 
         Div(
-            stat_tile("Current GPA", str(round(gpa, 2)), gpa_note),
+            stat_tile("Current GPA", str(round(gpa, 2)), gpa_note, "🎓"),
             stat_tile("Target GPA", str(state.target_gpa),
-                      "Your goal this term"),
+                      "Your goal this term", "🎯"),
             stat_tile("Assignments done",
                       str(finished) + " / " + str(total),
-                      "Keep the streak going"),
+                      "Keep the streak going", "✅"),
             stat_tile("Weekly study goal",
                       str(state.weekly_study_goal),
-                      "minutes per week"),
+                      "minutes per week", "⏱️"),
             classes="stats"
         ),
 
@@ -568,7 +682,7 @@ def assignments(
 
     return Page(state, [
         Header("Assignments"),
-        Div("Everything on your plate, in one place.",
+        Div("📚 Everything on your plate, in one place.",
             classes="subtitle"),
 
         Table(
@@ -644,7 +758,7 @@ def add_assignment(
 
     return Page(state, [
         Header("Add Assignment"),
-        Div("Add something new and we'll work out its priority.",
+        Div("✏️ Add something new and we'll work out its priority.",
             classes="subtitle"),
 
         message_box(state.form_message, "error"),
@@ -713,7 +827,7 @@ def grades(
 
     return Page(state, [
         Header("Grades"),
-        Div("See where you stand in every class.",
+        Div("📊 See where you stand in every class.",
             classes="subtitle"),
 
         Table(
@@ -847,7 +961,7 @@ def priorities(state: State) -> Page:
         rank += 1
 
     if not cards:
-        cards = [Div("No unfinished assignments!", classes="card")]
+        cards = [Div("🎉 No unfinished assignments!", classes="card")]
 
     content = [
         Header("Assignment Priorities"),
@@ -884,19 +998,18 @@ def progress(
 
     return Page(state, [
         Header("Academic Progress"),
-        Div("Small wins add up. Here's how you're doing.",
-            classes="subtitle"),
+        Div(vibe_message(percentage), classes="vibe"),
 
         Div(
             stat_tile("Completed",
                       str(finished) + " / " + str(total),
-                      "assignments finished"),
+                      "assignments finished", "✅"),
             stat_tile("Completion",
                       str(round(percentage, 1)) + "%",
-                      "of your workload"),
+                      "of your workload", "📈"),
             stat_tile("Weekly goal",
                       str(hours) + " h",
-                      str(state.weekly_study_goal) + " minutes"),
+                      str(state.weekly_study_goal) + " minutes", "⏱️"),
             classes="stats"
         ),
 
